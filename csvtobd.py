@@ -1,10 +1,10 @@
 import pandas as pd
 import json
-from sqlalchemy import create_engine
+from sqlalchemy import create_engine, text
 
 
 # Cargar el CSV
-csv_path = 'Expanded_Walmart_Products_Data_Spanish.csv'
+csv_path = 'C:/Users/Usuario/OneDrive/Escritorio/Trabajo de BI/Expanded_Walmart_Products_Data_Spanish.csv'
 df = pd.read_csv(csv_path)
 
 
@@ -137,7 +137,7 @@ hechos_productos.insert(0, 'id_hecho_producto', range(1, 1 + len(hechos_producto
 
 
 # Conectar a la base de datos MySQL
-engine = create_engine('')
+engine = create_engine('mysql+pymysql://root:contrasena@127.0.0.1:3306/database')
 
 
 # Guardar dimensiones en la base de datos con nombres en español
@@ -150,4 +150,69 @@ hechos_productos.to_sql('hechos_productos', con=engine, if_exists='replace', ind
 
 
 print("Modelo estrella cargado y datos del CSV guardados correctamente en la base de datos.")
+def run_update_queries():
+    # Lista de consultas de actualización
+    update_queries = [
+        """
+        UPDATE dim_producto 
+        SET nombre_producto = IFNULL(nombre_producto, RAND() * 1000000),
+            marca = IFNULL(marca, RAND() * 1000000),
+            descripcion = IFNULL(descripcion, RAND() * 1000000),
+            especificaciones = IFNULL(especificaciones, RAND() * 1000000),
+            urls_imagenes = IFNULL(urls_imagenes, RAND() * 1000000),
+            unidad = IFNULL(unidad, RAND() * 1000000),
+            tallas = IFNULL(tallas, RAND() * 1000000),
+            colores = IFNULL(colores, RAND() * 1000000),
+            ingredientes = IFNULL(ingredientes, RAND() * 1000000),
+            ingredientes_completo = IFNULL(ingredientes_completo, RAND() * 1000000),
+            otros_atributos = IFNULL(otros_atributos, RAND() * 1000000),
+            imagen_principal = IFNULL(imagen_principal, RAND() * 1000000);
+        """,
+        """
+        UPDATE dim_marca 
+        SET nombre_marca = IFNULL(nombre_marca, RAND() * 1000000);
+        """,
+        """
+        UPDATE dim_categoria 
+        SET nombre_categoria = IFNULL(nombre_categoria, RAND() * 1000000),
+            ruta_categoria = IFNULL(ruta_categoria, RAND() * 1000000),
+            url_categoria = IFNULL(url_categoria, RAND() * 1000000),
+            url_categoria_raiz = IFNULL(url_categoria_raiz, RAND() * 1000000),
+            nombre_categoria_raiz = IFNULL(nombre_categoria_raiz, RAND() * 1000000),
+            migajas_pan = IFNULL(migajas_pan, RAND() * 1000000);
+        """,
+        """
+        UPDATE dim_tiempo 
+        SET fecha = IFNULL(fecha, CURDATE()),
+            dia = IFNULL(dia, FLOOR(RAND() * 31) + 1),
+            mes = IFNULL(mes, FLOOR(RAND() * 12) + 1),
+            anio = IFNULL(anio, FLOOR(RAND() * 100) + 1920);
+        """,
+        """
+        UPDATE hechos_productos 
+        SET precio_final = IFNULL(precio_final, RAND() * 1000),
+            precio_unitario = IFNULL(precio_unitario, RAND() * 1000),
+            precio_inicial = IFNULL(precio_inicial, RAND() * 1000),
+            descuento = IFNULL(descuento, RAND() * 100),
+            cantidad_comentarios = IFNULL(cantidad_comentarios, FLOOR(RAND() * 100)),
+            disponible_para_entrega = IFNULL(disponible_para_entrega, RAND() * 1000000),
+            disponible_para_recogida = IFNULL(disponible_para_recogida, RAND() * 1000000);
+        """
+    ]
 
+    # Ejecutar las consultas en una transacción
+    with engine.connect() as connection:
+        try:
+            for query in update_queries:
+                connection.execute(text(query))
+                print(f"Ejecutado: {query[:30]}...")  # Imprime los primeros 30 caracteres de cada consulta para referencia
+            
+            # Confirmar la transacción
+            connection.commit()
+            print("Todas las consultas de actualización se ejecutaron con éxito")
+        
+        except Exception as e:
+            print(f"Error al ejecutar las consultas: {e}")
+
+# Llamar a la función para ejecutar las consultas
+run_update_queries()
