@@ -2,9 +2,8 @@ import pandas as pd
 import json
 from sqlalchemy import create_engine
 
-
 # Cargar el CSV
-csv_path = 'Expanded_Walmart_Products_Data_Spanish.csv'
+csv_path = 'csv_expandido.csv'
 df = pd.read_csv(csv_path)
 
 # Convertir la columna de fecha a un formato adecuado
@@ -117,8 +116,7 @@ hechos_productos = hechos_productos[['id_producto_dim', 'id_categoria_dim', 'id_
 hechos_productos.insert(0, 'id_hecho_producto', range(1, 1 + len(hechos_productos)))
 
 # Conectar a la base de datos MySQL
-engine = create_engine('')
-
+engine = create_engine('mysql+pymysql://root:ruperto11@localhost:3306/proyectobi')
 
 # Guardar dimensiones en la base de datos con nombres en español
 dim_producto.to_sql('dim_producto', con=engine, if_exists='replace', index=False)
@@ -129,4 +127,3 @@ dim_calificaciones.to_sql('dim_calificaciones', con=engine, if_exists='replace',
 hechos_productos.to_sql('hechos_productos', con=engine, if_exists='replace', index=False)
 
 print("Modelo estrella cargado y datos del CSV guardados correctamente en la base de datos.")
-
